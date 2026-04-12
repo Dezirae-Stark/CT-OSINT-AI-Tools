@@ -1,0 +1,63 @@
+# Environment
+.env
+*.env
+
+# Telegram session — contains auth credentials, NEVER commit
+data/telegram.session
+data/telegram.session.journal
+*.session
+*.session-journal
+
+# Evidence data — can contain sensitive OSINT material
+data/evidence/
+data/reports/
+
+# Databases — contain operational data
+data/sqlite/
+data/chromadb/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+env/
+venv/
+.venv/
+ENV/
+pip-log.txt
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Backend static (built frontend)
+backend/static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# WeasyPrint cache
+.weasyprint_cache/
