@@ -6,7 +6,7 @@ from typing import Optional, Set
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Query
 from sqlmodel import Session, select, col
 
-from database import get_session, Message, MonitoredChannel
+from database import get_session, Message, MonitoredChannel, write_audit_log
 from auth.dependencies import get_current_user
 from database import User
 
@@ -99,7 +99,6 @@ async def get_message(
 ):
     msg = session.get(Message, message_id)
     if not msg:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Message not found")
 
     channel = session.get(MonitoredChannel, msg.channel_id)
@@ -154,26 +153,21 @@ async def override_severity(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    from auth.dependencies import require_analyst
     if current_user.role not in ("ADMIN", "ANALYST"):
-        from fastapi import HTTPException
         raise HTTPException(status_code=403, detail="Analyst role required")
 
     msg = session.get(Message, message_id)
     if not msg:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Message not found")
 
     valid = {"NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"}
     if payload.severity.upper() not in valid:
-        from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=f"Invalid severity. Must be one of: {valid}")
 
     old_severity = msg.severity
     msg.severity = payload.severity.upper()
     session.add(msg)
 
-    write_audit_log = __import__("database", fromlist=["write_audit_log"]).write_audit_log
     write_audit_log(
         session,
         action="SEVERITY_OVERRIDE",

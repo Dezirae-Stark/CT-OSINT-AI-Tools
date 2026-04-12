@@ -120,7 +120,7 @@ export default function Search() {
                 Source Documents ({ragAnswer.sources.length})
               </div>
               {ragAnswer.sources.map((s, i) => (
-                <div key={i} className="card mb-2 text-xs font-mono">
+                <div key={s.message_id ?? i} className="card mb-2 text-xs font-mono">
                   <div className="text-[#8892a4] mb-1 line-clamp-2">{s.content}</div>
                   <div className="text-[#4a5568]">Score: {s.score}</div>
                 </div>
@@ -141,7 +141,7 @@ export default function Search() {
           {results.length === 0
             ? <div className="text-center py-12 text-[#4a5568] font-mono text-sm">NO RESULTS FOUND</div>
             : results.map((m, i) => (
-                <div key={i}>
+                <div key={m.message_id ?? m.id ?? i}>
                   {m.relevance_score !== undefined && (
                     <div className="text-[0.6rem] font-mono text-[#4a5568] mb-0.5 text-right">
                       relevance: {(m.relevance_score * 100).toFixed(1)}%

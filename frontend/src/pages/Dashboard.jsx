@@ -103,7 +103,7 @@ export default function Dashboard() {
               ? <div className="text-center py-12 text-[#4a5568] text-xs font-mono">AWAITING MESSAGES</div>
               : allMsgs.map((m, i) => (
                   <MessageCard
-                    key={`${m.id ?? Math.random()}-${i}`}
+                    key={m.id ?? i}
                     message={m}
                     isNew={i === 0 && liveMsgs.length > 0 && i < liveMsgs.length}
                   />
@@ -171,7 +171,7 @@ export default function Dashboard() {
                 .map((m, i) => {
                   const cls = m.llm_classification
                   return (
-                    <div key={i} className="flex items-center justify-between text-xs font-mono py-1 border-b border-[#1f2330] last:border-0">
+                    <div key={m.id ?? i} className="flex items-center justify-between text-xs font-mono py-1 border-b border-[#1f2330] last:border-0">
                       <span className="text-[#8892a4] truncate max-w-[60%]">
                         {cls?.threat_category || 'UNKNOWN'}
                       </span>

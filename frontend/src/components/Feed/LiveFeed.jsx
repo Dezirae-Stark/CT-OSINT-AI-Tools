@@ -17,7 +17,7 @@ export default function LiveFeed({ messages = null }) {
   return (
     <div>
       {feed.map((msg, i) => (
-        <MessageCard key={`${msg.id}-${i}`} message={msg} isNew={i === 0 && messages === null} />
+        <MessageCard key={msg.id ?? i} message={msg} isNew={i === 0 && messages === null} />
       ))}
     </div>
   )

@@ -84,7 +84,7 @@ export default function MessageCard({ message, onAction, isNew = false }) {
         <div className="flex flex-wrap gap-1 mb-2">
           {keywords.slice(0, 5).map((k, i) => (
             <span
-              key={i}
+              key={k.keyword ?? i}
               className="text-[0.6rem] font-mono px-1.5 py-0.5 bg-amber-900/20 text-amber-500 border border-amber-900/40"
             >
               {k.keyword}

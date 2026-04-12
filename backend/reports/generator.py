@@ -269,7 +269,17 @@ async def generate_report(
         logger.warning("WeasyPrint not installed — report saved as HTML")
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
-        status = "FAILED"
+        # Save HTML as fallback so report record points to a valid file
+        html_path = content_path.replace(".pdf", ".html")
+        try:
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+            content_path = html_path
+            status = "COMPLETE"
+            logger.warning("PDF failed — report saved as HTML fallback")
+        except Exception as e2:
+            logger.error(f"HTML fallback also failed: {e2}")
+            status = "FAILED"
 
     with Session(engine) as session:
         report = session.get(Report, report_id)

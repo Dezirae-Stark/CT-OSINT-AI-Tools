@@ -169,11 +169,10 @@ async def _classify_async(message_id: int, content: str, channel_name: str):
                 if result.get("severity") == "CRITICAL":
                     msg.severity = "CRITICAL"
                 elif result.get("requires_immediate_action"):
-                    msg.severity = max(
-                        ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"].index(msg.severity),
-                        ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"].index("HIGH"),
-                    )
-                    msg.severity = ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"][msg.severity]
+                    _sev_list = ["NONE", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+                    _cur = _sev_list.index(msg.severity) if msg.severity in _sev_list else 0
+                    _sev_idx = max(_cur, _sev_list.index("HIGH"))
+                    msg.severity = _sev_list[_sev_idx]
                 session.add(msg)
                 session.commit()
     except Exception as e:

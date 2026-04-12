@@ -27,7 +27,7 @@ function EntityPanel({ entity, onClose }) {
         <div className="mt-4">
           <div className="text-[0.6rem] font-mono text-[#4a5568] uppercase tracking-wider mb-2">Recent Messages</div>
           {entity.recent_messages.slice(0, 3).map((m, i) => (
-            <div key={i} className="mb-2 p-2 bg-[#1a1d24] text-xs font-body text-[#8892a4] rounded">
+            <div key={m.id ?? i} className="mb-2 p-2 bg-[#1a1d24] text-xs font-body text-[#8892a4] rounded">
               <div className="flex items-center gap-2 mb-1">
                 <SeverityBadge severity={m.severity} />
                 <span className="text-[#4a5568]">{m.timestamp_utc?.slice(0, 10)}</span>

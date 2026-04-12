@@ -11,10 +11,15 @@ data/telegram.session.journal
 # Evidence data — can contain sensitive OSINT material
 data/evidence/
 data/reports/
+**/data/evidence/
+**/data/reports/
 
 # Databases — contain operational data
 data/sqlite/
 data/chromadb/
+**/data/sqlite/
+**/data/chromadb/
+**/data/ghostexodus.log
 
 # Python
 __pycache__/

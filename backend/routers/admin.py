@@ -1,7 +1,9 @@
 """Admin router — user management, audit log, system status."""
 import json
+import os
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlmodel import Session, select, col
 
 from database import get_session, User, AuditLog, write_audit_log
@@ -40,15 +42,16 @@ async def create_user(
         role=payload.role.upper(),
     )
     session.add(user)
+    session.commit()
+    session.refresh(user)
     write_audit_log(
         session,
         action="USER_CREATED",
         user_id=current_user.id,
         target_type="USER",
+        target_id=str(user.id),
         detail={"username": payload.username, "role": payload.role.upper()},
     )
-    session.commit()
-    session.refresh(user)
     return user
 
 
@@ -154,23 +157,22 @@ async def system_status(
 ):
     from intelligence.llm_client import ping_ollama
     from intelligence.vectorstore import get_collection_stats
-    import os
+    from config import settings
 
     ollama_ok = await ping_ollama()
 
     chroma_stats = get_collection_stats()
 
     sqlite_size = 0
-    from config import settings
     if os.path.exists(settings.SQLITE_PATH):
         sqlite_size = os.path.getsize(settings.SQLITE_PATH)
 
     from database import Message, MonitoredChannel, User as UserModel
-    msg_count = len(session.exec(select(Message)).all())
-    channel_count = len(session.exec(
-        select(MonitoredChannel).where(MonitoredChannel.is_active == True)
-    ).all())
-    user_count = len(session.exec(select(UserModel)).all())
+    msg_count = session.exec(select(func.count(Message.id))).one()
+    channel_count = session.exec(
+        select(func.count(MonitoredChannel.id)).where(MonitoredChannel.is_active == True)
+    ).one()
+    user_count = session.exec(select(func.count(UserModel.id))).one()
 
     from collector.channel_monitor import _active_handlers
     active_monitors = len(_active_handlers)

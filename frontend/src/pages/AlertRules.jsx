@@ -196,7 +196,7 @@ export default function AlertRules() {
               <span className="text-[#8892a4]"> matches out of {testResult.messages_tested} messages tested</span>
             </div>
             {testResult.matches?.slice(0, 5).map((m, i) => (
-              <div key={i} className="text-xs font-mono bg-[#1a1d24] p-3">
+              <div key={m.message_id ?? m.id ?? i} className="text-xs font-mono bg-[#1a1d24] p-3">
                 <div className="text-[#4a5568] mb-1">{m.timestamp_utc?.slice(0, 16)} UTC · <span className={`severity-badge severity-${m.severity}`}>{m.severity}</span></div>
                 <div className="text-[#8892a4]">{m.content_preview?.slice(0, 200)}</div>
               </div>
