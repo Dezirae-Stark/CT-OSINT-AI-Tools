@@ -60,7 +60,7 @@ Name: "startupicon";   Description: "Start GhostExodus on Windows startup"; Grou
 Source: "..\dist\GhostExodus\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Environment template (if not already present in install dir)
-Source: "..\env.example";        DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
+Source: "..\.env.example";       DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
 
 ; Custom Ollama analyst model definition
 Source: "..\ghostexodus.Modelfile"; DestDir: "{app}"; Flags: ignoreversion
