@@ -28,7 +28,7 @@ async def complete(
     system: Optional[str] = None,
     max_tokens: int = 1000,
 ) -> str:
-    """Generate a completion from llama3.1:8b."""
+    """Generate a completion from the configured LLM model (default: ghostexodus-analyst)."""
     async with _semaphore:
         messages = []
         if system:

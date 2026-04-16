@@ -62,6 +62,12 @@ Source: "..\dist\GhostExodus\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 ; Environment template (if not already present in install dir)
 Source: "..\env.example";        DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
 
+; Custom Ollama analyst model definition
+Source: "..\ghostexodus.Modelfile"; DestDir: "{app}"; Flags: ignoreversion
+
+; Model setup script (pulls base model + builds ghostexodus-analyst)
+Source: "..\installer\setup_models.bat"; DestDir: "{app}"; Flags: ignoreversion
+
 [Dirs]
 ; Create writable data directories outside Program Files
 ; (Program Files is read-only on Windows — data must go in AppData or next to exe)
@@ -72,9 +78,10 @@ Name: "{#AppDataDir}\data\evidence\media"
 Name: "{#AppDataDir}\data\reports"
 
 [Icons]
-Name: "{group}\{#AppName}";              Filename: "{app}\{#AppExeName}";    WorkingDir: "{#AppDataDir}"
-Name: "{group}\Uninstall {#AppName}";   Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#AppName}";     Filename: "{app}\{#AppExeName}";    WorkingDir: "{#AppDataDir}";  Tasks: desktopicon
+Name: "{group}\{#AppName}";                    Filename: "{app}\{#AppExeName}";        WorkingDir: "{#AppDataDir}"
+Name: "{group}\Setup AI Model";                Filename: "{app}\setup_models.bat";     WorkingDir: "{app}"; Comment: "Download and configure the GhostExodus analyst model (requires internet)"
+Name: "{group}\Uninstall {#AppName}";          Filename: "{uninstallexe}"
+Name: "{commondesktop}\{#AppName}";            Filename: "{app}\{#AppExeName}";        WorkingDir: "{#AppDataDir}";  Tasks: desktopicon
 
 [Registry]
 ; Startup registry entry (optional task)
@@ -84,6 +91,9 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; \
   Flags: uninsdeletevalue; Tasks: startupicon
 
 [Run]
+; Download base model + build ghostexodus-analyst (optional — requires internet + Ollama)
+Filename: "{app}\setup_models.bat"; Description: "Download and configure AI analyst model (ghostexodus-analyst, ~4.7 GB — requires Ollama + internet)"; Flags: postinstall skipifsilent nowait unchecked
+
 ; Open install dir after install
 Filename: "{app}"; Description: "Open installation folder"; Flags: postinstall skipifsilent shellexec
 
@@ -114,9 +124,11 @@ begin
   begin
     if MsgBox(
       'Ollama was not found on this system.' + #13#10 + #13#10 +
-      'GhostExodus requires Ollama to run the AI analysis engine (llama3.1:8b).' + #13#10 + #13#10 +
-      'Download Ollama from: https://ollama.com' + #13#10 + #13#10 +
-      'You can install Ollama after GhostExodus is installed.' + #13#10 +
+      'GhostExodus requires Ollama to run the AI analysis engine.' + #13#10 +
+      'The custom model "ghostexodus-analyst" (based on llama3.1:8b) will be' + #13#10 +
+      'configured by the Setup AI Model script included with this installer.' + #13#10 + #13#10 +
+      'Install Ollama first from: https://ollama.com' + #13#10 +
+      'Then run: Start Menu > GhostExodus > Setup AI Model' + #13#10 + #13#10 +
       'Continue installation anyway?',
       mbConfirmation, MB_YESNO) = IDNO
     then

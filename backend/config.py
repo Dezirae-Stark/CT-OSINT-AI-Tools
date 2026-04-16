@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # Ollama / LLM
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    LLM_MODEL: str = "llama3.1:8b"
+    LLM_MODEL: str = "ghostexodus-analyst"
     EMBED_MODEL: str = "nomic-embed-text"
     LLM_CONTEXT_WINDOW: int = 4096
 

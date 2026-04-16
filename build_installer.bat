@@ -99,9 +99,12 @@ echo        PyInstaller build complete: %DIST%\
 
 :: ─── Copy additional files into dist ─────────────────────────────────────────
 echo.
-echo        Copying config files...
-copy /Y ".env.example"  "%DIST%\.env.example" >nul
-copy /Y "README.md"     "%DIST%\README.md"    >nul
+echo        Copying config and model files...
+copy /Y ".env.example"            "%DIST%\.env.example"          >nul
+copy /Y "README.md"               "%DIST%\README.md"             >nul
+copy /Y "ghostexodus.Modelfile"   "%DIST%\ghostexodus.Modelfile" >nul
+copy /Y "installer\setup_models.bat" "%DIST%\setup_models.bat"   >nul
+echo        Modelfile and model setup script included in bundle
 
 :: ─── Step 7: Inno Setup installer ────────────────────────────────────────────
 echo.
