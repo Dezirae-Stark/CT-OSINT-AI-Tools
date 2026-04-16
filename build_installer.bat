@@ -136,7 +136,7 @@ echo  ============================================================
 echo    BUILD COMPLETE
 echo  ============================================================
 echo.
-echo    Installer:  installer\output\GhostExodus_Setup_v1.0.0.exe
+echo    Installer:  installer\output\GhostExodus_Setup_v1.1.0.exe
 echo    Raw bundle: dist\GhostExodus\GhostExodus.exe
 echo.
 pause

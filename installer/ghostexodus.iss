@@ -7,7 +7,7 @@
 ; before running this script.
 
 #define AppName         "GhostExodus OSINT Platform"
-#define AppVersion      "1.0.0"
+#define AppVersion      "1.1.0"
 #define AppPublisher    "CT-OSINT Intelligence"
 #define AppURL          "https://github.com/Dezirae-Stark/CT-OSINT-AI-Tools"
 #define AppExeName      "GhostExodus.exe"
