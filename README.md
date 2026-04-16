@@ -18,8 +18,9 @@ Monitors Telegram channels in real time, classifies threats with local AI, corre
 | **Data** | All data stored in `%AppData%\GhostExodus\` — never leaves the machine |
 | **Default login** | Username and password set during first-run wizard |
 | **Roles** | ADMIN / ANALYST / VIEWER (RBAC enforced on every API endpoint) |
-| **LLM** | Ollama running `llama3.1:8b` locally (must be running before start) |
+| **LLM** | `ghostexodus-analyst` — custom model built on `llama3.1:8b` via Ollama (must be running before start) |
 | **Embeddings** | `nomic-embed-text` via Ollama |
+| **Model setup** | Run `setup_models.bat` once after installing Ollama — pulls base model + builds custom analyst model (~4.7 GB) |
 
 ---
 
@@ -54,7 +55,7 @@ Monitors Telegram channels in real time, classifies threats with local AI, corre
 
 - **Real-time Telegram monitoring** — Telethon MTProto connection subscribes to live message events from monitored channels; new messages appear on the dashboard within seconds
 - **Keyword threat engine** — 6 built-in threat categories (Operational Planning, Recruitment, Financing, Propaganda, UK-Specific, Incitement) with regex and exact-match custom rules
-- **Local LLM classification** — `llama3.1:8b` running in Ollama classifies medium/high severity messages for threat category, TTP identification, UK relevance, and urgency
+- **Local LLM classification** — `ghostexodus-analyst` (custom model built on `llama3.1:8b`) classifies medium/high severity messages for threat category, TTP identification, UK relevance, and urgency; specialised OSINT system prompt and few-shot examples baked into the model
 - **Semantic search** — `nomic-embed-text` embeddings stored in ChromaDB; search by meaning, keyword, or entity with cosine similarity scoring
 - **RAG intelligence queries** — LlamaIndex retrieval-augmented generation pipeline answers analytical questions over the message corpus
 - **Entity extraction & correlation** — regex + LLM hybrid extracts Telegram handles, phone numbers, email addresses, onion links, crypto addresses, domain names; builds co-occurrence graph
@@ -87,9 +88,13 @@ Monitors Telegram channels in real time, classifies threats with local AI, corre
 These must be installed **before** running GhostExodus:
 
 1. **Ollama** — [https://ollama.com](https://ollama.com)
-   - After installing, pull the required models:
+   - After installing Ollama, run the model setup script included with GhostExodus:
      ```batch
-     ollama pull llama3.1:8b
+     setup_models.bat
+     ```
+     This pulls `llama3.1:8b` (~4.7 GB) and builds the `ghostexodus-analyst` custom model.
+     To pull only the embedding model manually:
+     ```batch
      ollama pull nomic-embed-text
      ```
    - Ollama must be **running** (`ollama serve`) before launching GhostExodus
@@ -108,16 +113,21 @@ These must be installed **before** running GhostExodus:
 
 > **Download the pre-built installer from the [Releases](https://github.com/Dezirae-Stark/CT-OSINT-AI-Tools/releases) page.**
 
-1. Run `GhostExodus_Setup_v1.0.0.exe` as Administrator
-2. Follow the installation wizard
-3. At the end, tick **"Launch GhostExodus"** to start immediately
+1. Install **Ollama** from [https://ollama.com](https://ollama.com) if not already present
+2. Run `GhostExodus_Setup_v1.0.0.exe` as Administrator
+3. Follow the installation wizard
+4. On the final screen, optionally tick **"Download and configure AI analyst model"** — this runs `setup_models.bat` to pull `llama3.1:8b` and build `ghostexodus-analyst` (~4.7 GB, requires internet)
+5. Tick **"Launch GhostExodus"** to start immediately
+
+> If you skip step 4, run **Start Menu → GhostExodus → Setup AI Model** at any time to build the model.
 
 The installer:
 - Deploys to `C:\Program Files\GhostExodus\`
 - Creates writable data directories in `%AppData%\GhostExodus\`
 - Copies `.env.example` to `%AppData%\GhostExodus\.env` for first-run configuration
+- Installs `ghostexodus.Modelfile` and `setup_models.bat` alongside the application
 - Adds an optional startup registry entry (opt-in during install)
-- Warns if Ollama is not detected (you can install it after and it will work)
+- Warns if Ollama is not detected with instructions for the model setup script
 
 After installation, **edit `%AppData%\GhostExodus\.env`** before launching (see [Configuration](#configuration-env)).
 
@@ -150,8 +160,10 @@ xcopy /E /Y /I frontend\dist backend\static
 copy .env.example .env
 :: Edit .env with your credentials
 
-:: 7. Pull Ollama models
-ollama pull llama3.1:8b
+:: 7. Set up Ollama models (pulls llama3.1:8b + builds ghostexodus-analyst)
+setup_models.bat
+:: Or manually:
+::   ollama pull llama3.1:8b && ollama create ghostexodus-analyst -f ghostexodus.Modelfile
 ollama pull nomic-embed-text
 
 :: 8. Start (from project root)
@@ -185,8 +197,10 @@ ENV=production
 
 # Ollama (defaults work if Ollama is running on localhost)
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.1:8b
-OLLAMA_EMBED_MODEL=nomic-embed-text
+# Custom analyst model — built by setup_models.bat
+# Falls back gracefully if you set this to llama3.1:8b directly
+LLM_MODEL=ghostexodus-analyst
+EMBED_MODEL=nomic-embed-text
 
 # JWT expiry in hours
 JWT_EXPIRY_HOURS=24
@@ -397,6 +411,34 @@ Each classified message receives a JSON object with:
 - `requires_immediate_action` (boolean)
 - `reasoning` (analyst-readable explanation)
 
+### Custom Analyst Model — ghostexodus-analyst
+
+GhostExodus uses a custom Ollama model (`ghostexodus-analyst`) rather than a raw base model. It is built from `ghostexodus.Modelfile` and configured specifically for OSINT threat analysis work:
+
+| Parameter | Value | Effect |
+|-----------|-------|--------|
+| `temperature` | 0.1 | Deterministic, analytical — minimal hallucination |
+| `num_ctx` | 4096 | Full context window for long message threads |
+| `top_k` | 20 | Reduces random token selection |
+| `repeat_penalty` | 1.1 | Suppresses repetitive phrasing in long outputs |
+
+**Baked-in capabilities (few-shot trained):**
+- Threat classification → returns valid JSON without prompting for format
+- Entity extraction → returns valid JSON array without formatting instructions
+- Stylometric comparison → structured similarity scoring
+- OSINT analytical prose in formal intelligence report style
+
+**To rebuild the model** after modifying `ghostexodus.Modelfile`:
+```batch
+ollama create ghostexodus-analyst -f ghostexodus.Modelfile
+```
+
+**To use a different base model**, edit the first line of `ghostexodus.Modelfile`:
+```
+FROM mistral:7b
+```
+Then rebuild with the command above.
+
 ---
 
 ## Semantic Search & RAG
@@ -410,7 +452,7 @@ All messages are embedded using `nomic-embed-text` (768-dimensional vectors) and
 LlamaIndex constructs a retrieval-augmented generation pipeline:
 1. Embeds the query
 2. Retrieves the top-K most semantically similar messages from ChromaDB
-3. Passes retrieved context + query to `llama3.1:8b`
+3. Passes retrieved context + query to `ghostexodus-analyst`
 4. Returns synthesised answer with source citations
 
 Useful for queries like: *"What logistics planning is occurring in [city]?"* or *"Are there references to a specific individual across channels?"*
@@ -591,7 +633,10 @@ The script runs these steps:
 4. Installs `requirements.txt` + `pyinstaller==6.11.1` into the build venv
 5. Cleans previous `build/` and `dist/` directories
 6. Runs `pyinstaller ghostexodus.spec` — produces `dist/GhostExodus/GhostExodus.exe`
-7. Runs Inno Setup compiler to produce `installer/output/GhostExodus_Setup_v1.0.0.exe`
+7. Copies `ghostexodus.Modelfile` and `installer/setup_models.bat` into `dist/GhostExodus/`
+8. Runs Inno Setup compiler to produce `installer/output/GhostExodus_Setup_v1.0.0.exe`
+
+The resulting installer includes the `ghostexodus.Modelfile` and `setup_models.bat` — users run the model setup script once after installation to pull the base model and build `ghostexodus-analyst`.
 
 If Inno Setup is not found, the script exits gracefully with instructions and leaves the raw `dist/GhostExodus/` bundle ready to run directly.
 
@@ -680,7 +725,7 @@ All Ollama calls are serialised through a single `asyncio.Semaphore(1)` to preve
 | Vector DB | ChromaDB | 0.5+ |
 | Relational DB | SQLite via SQLModel | 0.0.19+ |
 | ORM | SQLAlchemy (async) | 2.0+ |
-| LLM inference | Ollama | llama3.1:8b |
+| LLM inference | Ollama | ghostexodus-analyst (llama3.1:8b base) |
 | Embeddings | Ollama | nomic-embed-text |
 | RAG framework | LlamaIndex | 0.10+ |
 | Authentication | python-jose (JWT) | 3.3+ |
