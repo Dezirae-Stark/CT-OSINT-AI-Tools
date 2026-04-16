@@ -27,7 +27,7 @@ DefaultGroupName=GhostExodus
 AllowNoIcons=yes
 ; Require admin for installation to Program Files
 PrivilegesRequired=admin
-OutputDir=installer\output
+OutputDir=output
 OutputBaseFilename=GhostExodus_Setup_v{#AppVersion}
 ; Compression
 Compression=lzma2/ultra64
